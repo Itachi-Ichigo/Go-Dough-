@@ -19,6 +19,7 @@ namespace Game1
         Level currentLevel;
         Rectangle screenRect;
         KeyboardState keyboardState;
+        TimeSpan resumeTimeSpan = TimeSpan.FromSeconds(5);
 
         private FrameCounter frameCounter;
 
@@ -26,14 +27,15 @@ namespace Game1
         bool canToggle;
 
         Texture2D pauseImage;
+        Texture2D[]  resumeImage;
         Texture2D gameOverImage;
 
         int curLevelIndex = 0;
-
         enum GameState
         {
             GS_RUNNING = 0,
             GS_PAUSED = 1,
+            GS_RESUMING = 2,
             GS_GAME_OVER
        
         }
@@ -50,8 +52,8 @@ namespace Game1
             Content.RootDirectory = "Content";
 
             frameCounter = new FrameCounter();
-
-            gameState = GameState.GS_RUNNING;
+            
+            gameState = GameState.GS_RESUMING;
         }
 
         /// <summary>
@@ -78,6 +80,11 @@ namespace Game1
 
             pauseImage = Content.Load<Texture2D>("Graphics\\pause");
             gameOverImage = Content.Load<Texture2D>("Graphics\\game_over");
+            resumeImage = new Texture2D[6];
+            for(int i = 0; i<=5; i++)
+            {
+                resumeImage[i] = Content.Load<Texture2D>("Graphics\\Resume-"+i);
+            }
 
             canToggle = true;
 
@@ -147,6 +154,21 @@ namespace Game1
         /// <param name="gameTime">Provides a snapshot of timing values.</param>
         protected override void Update(GameTime gameTime)
         {
+            if (gameState == GameState.GS_RESUMING)
+            { 
+
+                if ( Math.Floor(resumeTimeSpan.TotalSeconds)==0)
+                    {
+                        gameState = GameState.GS_RUNNING;
+                        resumeTimeSpan = TimeSpan.FromSeconds(5);
+                   
+                    }
+                else 
+                    {
+                        resumeTimeSpan -= gameTime.ElapsedGameTime;
+                    }
+            }
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape))
                 Exit();
 
@@ -154,8 +176,7 @@ namespace Game1
 
             if (canToggle && keyboardState.IsKeyDown(Keys.P))
             {
-                gameState = (gameState == GameState.GS_RUNNING) ? GameState.GS_PAUSED: GameState.GS_RUNNING;
-
+                gameState = (gameState == GameState.GS_RUNNING) ? GameState.GS_PAUSED: GameState.GS_RESUMING;
                 canToggle = false;
             }
 
@@ -167,6 +188,7 @@ namespace Game1
 
             if (keyboardState.IsKeyDown(Keys.R))
             {
+                gameState = GameState.GS_RESUMING;
                 currentLevel.Reset();
             }
 
@@ -211,7 +233,6 @@ namespace Game1
             // TODO: Add your drawing code here
 
             spriteBatch.Begin();
-
             if (gameState != GameState.GS_GAME_OVER)
                 currentLevel.Draw();
             else
@@ -222,6 +243,12 @@ namespace Game1
 
             if (gameState == GameState.GS_PAUSED)
                 drawPauseLayer();
+                
+
+            if(gameState == GameState.GS_RESUMING)
+            {
+               spriteBatch.Draw(resumeImage[resumeTimeSpan.Seconds], new Rectangle(GraphicsDevice.Viewport.TitleSafeArea.X + 590, GraphicsDevice.Viewport.TitleSafeArea.Y + 260, 200, 100), Color.White);
+            }
 
             spriteBatch.End();
 

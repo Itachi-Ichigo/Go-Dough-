@@ -197,7 +197,6 @@ namespace Game1
                     sourceRect = new Rectangle((frameCount - 1) * FrameWidth, 0, FrameWidth, FrameHeight);
             }
 
-            Console.WriteLine(currentFrame);
         }
 
         // Draw the Animation Strip
@@ -213,8 +212,6 @@ namespace Game1
             {
                 flip = SpriteEffects.None;
             }
-
-            //Console.WriteLine("Dest X: " + destinationRect.X);
 
             spriteBatch.Draw(spriteStrip, destinationRect, sourceRect, color, 0f, Vector2.Zero, flip, 0f);
         }
